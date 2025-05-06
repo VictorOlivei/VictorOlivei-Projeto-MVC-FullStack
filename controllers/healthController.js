@@ -8,6 +8,14 @@ const logger = require('../utils/logger');
 
 // Controlador para verificar a saúde da aplicação
 const checkHealth = catchAsync(async (req, res, next) => {
+  // Log detalhado da verificação de saúde
+  logger.info({
+    type: 'health_check_initiated',
+    source: req.ip,
+    requestId: req.requestId,
+    userAgent: req.get('user-agent')
+  });
+
   // Obter métricas da aplicação e do sistema
   const metrics = getMetrics();
   
@@ -30,12 +38,42 @@ const checkHealth = catchAsync(async (req, res, next) => {
     component => component.status === 'healthy'
   ) ? 'healthy' : 'degraded';
   
-  // Registrar verificação de saúde
+  // Log detalhado do status do sistema
   logger.info({
-    type: 'health_check',
+    type: 'health_status',
     status: overallStatus,
-    components
+    components: JSON.stringify(components),
+    metrics: {
+      requests: metrics.application.requestCount,
+      errors: metrics.application.errorCount,
+      errorRate: metrics.application.errorRate,
+      avgResponseTime: metrics.application.responseTimeAvg
+    },
+    system: {
+      freeMemory: Math.round(metrics.system.freeMemory / 1024 / 1024),
+      totalMemory: Math.round(metrics.system.totalMemory / 1024 / 1024),
+      memoryUsagePercent: (100 - (metrics.system.freeMemory / metrics.system.totalMemory) * 100).toFixed(2),
+      loadAvg: metrics.system.loadAvg
+    },
+    timestamp: new Date().toISOString(),
+    requestId: req.requestId
   });
+
+  // Se algum componente não estiver saudável, registrar um aviso
+  if (overallStatus !== 'healthy') {
+    logger.warn({
+      type: 'system_degraded',
+      components: Object.entries(components)
+        .filter(([_, data]) => data.status !== 'healthy')
+        .map(([name]) => name),
+      metrics: {
+        errorRate: metrics.application.errorRate,
+        avgResponseTime: metrics.application.responseTimeAvg
+      },
+      timestamp: new Date().toISOString(),
+      requestId: req.requestId
+    });
+  }
   
   // Enviar resposta
   res.status(200).json({

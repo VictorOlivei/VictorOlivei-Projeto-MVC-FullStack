@@ -251,6 +251,134 @@ A arquitetura implementa várias camadas de segurança:
 - **Logging de segurança**: Registro de tentativas de acesso e eventos suspeitos
 - **Monitoramento**: Detecção de comportamentos anômalos
 
+## Exemplos de Requisições e Respostas
+
+### Rota Raiz
+**Descrição:** Retorna uma mensagem de boas-vindas e links úteis.
+- **Método:** GET
+- **URL:** `/`
+
+**Exemplo de Resposta:**
+```json
+{
+  "status": "success",
+  "message": "Bem-vindo à API de Arquitetura MVP",
+  "documentation": "/api/v1/docs",
+  "health": "/api/v1/health"
+}
+```
+
+---
+
+### Rota de Saúde
+**Descrição:** Verifica o status da aplicação e retorna métricas básicas.
+- **Método:** GET
+- **URL:** `/api/v1/health`
+
+**Exemplo de Resposta:**
+```json
+{
+  "status": "success",
+  "data": {
+    "status": "healthy",
+    "timestamp": "2025-05-05T21:55:20.000Z",
+    "components": {
+      "api": {
+        "status": "healthy",
+        "uptime": 371
+      },
+      "database": {
+        "status": "healthy",
+        "responseTime": "5ms"
+      }
+    },
+    "metrics": {
+      "requests": {
+        "total": 100,
+        "errors": 2,
+        "errorRate": "2.00%",
+        "avgResponseTime": "10ms"
+      },
+      "system": {
+        "memory": {
+          "free": "500 MB",
+          "total": "1000 MB",
+          "usage": "50.00%"
+        },
+        "cpu": {
+          "load": [0.1, 0.2, 0.3]
+        }
+      }
+    }
+  }
+}
+```
+
+---
+
+### Rota de Login
+**Descrição:** Realiza a autenticação do usuário e retorna um token JWT.
+- **Método:** POST
+- **URL:** `/api/v1/auth/login`
+- **Corpo da Requisição:**
+```json
+{
+  "email": "admin@example.com",
+  "password": "password123"
+}
+```
+
+**Exemplo de Resposta:**
+```json
+{
+  "status": "success",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "data": {
+    "user": {
+      "id": "1",
+      "name": "Admin User",
+      "email": "admin@example.com"
+    }
+  }
+}
+```
+
+---
+
+### Rota de Logs
+**Descrição:** Retorna os logs da aplicação com suporte a filtros e paginação.
+- **Método:** GET
+- **URL:** `/api/v1/logs`
+- **Parâmetros de Consulta:**
+  - `level` (opcional): Nível do log (ex.: `info`, `error`).
+  - `limit` (opcional): Número de logs por página (padrão: 100).
+  - `page` (opcional): Número da página (padrão: 1).
+
+**Exemplo de Resposta:**
+```json
+{
+  "status": "success",
+  "results": 10,
+  "total": 50,
+  "page": 1,
+  "limit": 10,
+  "data": {
+    "logs": [
+      {
+        "level": "info",
+        "message": "Servidor rodando em modo development na porta 3000",
+        "timestamp": "2025-05-05T21:49:09.000Z"
+      },
+      {
+        "level": "error",
+        "message": "REJEIÇÃO NÃO TRATADA! 💥 Encerrando...",
+        "timestamp": "2025-05-05T21:56:39.000Z"
+      }
+    ]
+  }
+}
+```
+
 ## 6. Conclusão
 
 A arquitetura MVP desenvolvida fornece uma base sólida para novos projetos, implementando requisitos não funcionais essenciais desde o início. A estrutura clara e organizada, seguindo o padrão MVC, facilita a manutenção e evolução do sistema.
